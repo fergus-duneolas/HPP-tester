@@ -4,26 +4,19 @@
   <meta charset="utf-8" />
   <title>HPP Return Catcher</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- If you're testing inside an iframe, try to pop to top window -->
   <script>
-    // 1) If we land inside an iframe, try to break out so you can see the page.
+    // If we’re inside an iframe, try to pop to the top window
     (function ensureTopNav() {
-      try {
-        if (window.top !== window.self) {
-          window.top.location.href = window.location.href; // attempt top-level navigation
-        }
-      } catch (e) { /* cross-origin; ignore */ }
+      try { if (window.top !== window.self) window.top.location.href = window.location.href; } catch {}
     })();
 
-    // 2) OPTIONAL: immediately bounce to your backend (keep query params)
-    // e.g., const AUTO_REDIRECT_TO = "https://your.app/payments/return";
+    // OPTIONAL: immediately bounce to your backend with the same query string
+    // e.g. const AUTO_REDIRECT_TO = "https://your.app/payments/return";
     const AUTO_REDIRECT_TO = ""; // set to your backend URL to auto-redirect
     (function maybeBounce() {
       if (AUTO_REDIRECT_TO) {
         const sep = AUTO_REDIRECT_TO.includes("?") ? "&" : "?";
-        const target = AUTO_REDIRECT_TO + sep + window.location.search.slice(1);
-        // Use replace() so the HPP page isn't in the history stack
-        window.location.replace(target);
+        window.location.replace(AUTO_REDIRECT_TO + sep + window.location.search.slice(1));
       }
     })();
   </script>
@@ -45,29 +38,19 @@
   <h2>Query Parameters</h2>
   <div class="kv" id="params"></div>
 
-  <h2>Tips</h2>
-  <ul>
-    <li>Look for a transaction id param (often <code>TRN_ID</code>, <code>transaction_id</code>, or similar).</li>
-    <li>Use that id on your backend to call <code>GET /ucp/transactions/{TRN_ID}</code> and confirm status.</li>
-    <li>If you want to bounce to your backend automatically, set <code>AUTO_REDIRECT_TO</code> in the script.</li>
-  </ul>
-
   <script>
-    const outFull = document.getElementById('full');
-    const outParams = document.getElementById('params');
-    outFull.textContent = window.location.href;
-
+    document.getElementById('full').textContent = window.location.href;
     const qp = new URLSearchParams(window.location.search);
-    if ([...qp.keys()].length === 0) {
-      outParams.innerHTML = '<div class="warn">No query parameters present.</div>';
-    } else {
+    const out = document.getElementById('params');
+    if ([...qp.keys()].length === 0) out.innerHTML = '<div class="warn">No query parameters present.</div>';
+    else {
       const frag = document.createDocumentFragment();
       qp.forEach((v, k) => {
         const kEl = document.createElement('div'); kEl.innerHTML = `<code>${k}</code>`;
         const vEl = document.createElement('div'); vEl.textContent = v;
         frag.appendChild(kEl); frag.appendChild(vEl);
       });
-      outParams.appendChild(frag);
+      out.appendChild(frag);
     }
   </script>
 </body>
